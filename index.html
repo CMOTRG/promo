@@ -36,17 +36,39 @@
   } else {
     var f = document.createElement("iframe");
     f.id = "frame";
-    f.src = TARGET;
+    f.src = TARGET + (TARGET.indexOf("?") > -1 ? "&" : "?") + "embed=1";
     f.allow = "fullscreen; screen-wake-lock";
     f.allowFullscreen = true;
     f.onload = function () { document.getElementById("msg").style.display = "none"; };
     document.body.appendChild(f);
 
-    // แตะครั้งแรกเพื่อเข้าโหมดเต็มจอ + ขอให้จอเปิดค้าง
-    document.addEventListener("click", function go() {
-      try { var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen).call(d); } catch (e) {}
+    // ปุ่มสลับ เต็มจอ / ย่อกลับ (ซ่อนเองหลัง 4 วินาที แตะมุมขวาบนให้โผล่)
+    var b = document.createElement("button");
+    b.id = "fs";
+    b.style.cssText = "position:fixed;top:12px;right:12px;z-index:9;font:600 15px system-ui,sans-serif;border:0;border-radius:10px;padding:10px 16px;background:rgba(255,255,255,.92);color:#15302f;transition:opacity .4s";
+    document.body.appendChild(b);
+    var zone = document.createElement("div");
+    zone.style.cssText = "position:fixed;top:0;right:0;width:200px;height:90px;z-index:8";
+    document.body.appendChild(zone);
+
+    function isFull() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function label() { b.textContent = isFull() ? "✕ ย่อหน้าจอ" : "⛶ เต็มจอ"; }
+    var ht;
+    function showBtn() { b.style.opacity = 1; b.style.pointerEvents = "auto"; clearTimeout(ht);
+      ht = setTimeout(function () { b.style.opacity = 0; b.style.pointerEvents = "none"; }, 4000); }
+
+    b.onclick = function () {
+      try {
+        if (isFull()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+        else { var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen).call(d); }
+      } catch (e) {}
       try { navigator.wakeLock && navigator.wakeLock.request("screen"); } catch (e) {}
-    }, { once: true });
+      showBtn();
+    };
+    zone.onclick = showBtn;
+    document.addEventListener("fullscreenchange", label);
+    document.addEventListener("webkitfullscreenchange", label);
+    label(); showBtn();
 
     // รีโหลดทุก 6 ชม. กันเครื่องค้าง
     setTimeout(function () { location.reload(); }, 6 * 3600 * 1000);
