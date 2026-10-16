@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>จอโปรโมชั่น มอ ออ</title>
+<meta name="theme-color" content="#0d1a1f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  html,body{margin:0;height:100%;background:#0d1a1f;color:#fff;font-family:"Prompt",system-ui,sans-serif;overflow:hidden}
+  #frame{position:fixed;inset:0;width:100%;height:100%;border:0;display:block}
+  #msg{position:fixed;inset:0;display:grid;place-content:center;text-align:center;gap:12px;padding:24px}
+  #msg a{color:#ffb38a;font-size:18px}
+</style>
+</head>
+<body>
+<div id="msg">
+  <div style="font-size:22px;font-weight:600">กำลังเปิดจอโปรโมชั่น…</div>
+  <a id="link" href="#">ถ้าไม่เปิดเอง แตะที่นี่</a>
+</div>
+
+<script>
+  /* ===== ตั้งค่า 2 บรรทัดนี้ ===== */
+  // 1) วางลิงก์ Web app ที่ลงท้ายด้วย /exec
+  var TARGET = "https://script.google.com/macros/s/AKfycbwEbJ9He7gU6TMtWC24SfFW7FKoMh1wDH8NOBjY-9CYnB2CMVY1hXQ2xXGBd591PXAe9w/exec";
+  // 2) โหมด: "embed" = เปิดในหน้านี้เต็มจอ (แนะนำ สำหรับแท็บเล็ต)
+  //          "redirect" = เด้งไปลิงก์ Apps Script ตรงๆ
+  var MODE = "embed";
+  /* ============================== */
+
+  document.getElementById("link").href = TARGET;
+
+  if (MODE === "redirect") {
+    location.replace(TARGET);
+  } else {
+    var f = document.createElement("iframe");
+    f.id = "frame";
+    f.src = TARGET;
+    f.allow = "fullscreen; screen-wake-lock";
+    f.allowFullscreen = true;
+    f.onload = function () { document.getElementById("msg").style.display = "none"; };
+    document.body.appendChild(f);
+
+    // แตะครั้งแรกเพื่อเข้าโหมดเต็มจอ + ขอให้จอเปิดค้าง
+    document.addEventListener("click", function go() {
+      try { var d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen).call(d); } catch (e) {}
+      try { navigator.wakeLock && navigator.wakeLock.request("screen"); } catch (e) {}
+    }, { once: true });
+
+    // รีโหลดทุก 6 ชม. กันเครื่องค้าง
+    setTimeout(function () { location.reload(); }, 6 * 3600 * 1000);
+  }
+</script>
+</body>
+</html>
